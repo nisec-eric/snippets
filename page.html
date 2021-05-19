@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=2.0, user-scalable=yes" />
+    <title>m3u8视频在线播放器</title>
+    <style>
+    	html,body{height:100%;}
+        #footer{
+            height: 20px;
+            width: 100%;
+            margin-top:10px;
+            text-align: center;
+            color: white;
+            font-family: Arial;
+            font-size: 13px;
+        }
+        .logo img{height:32px;margin-top:-4px}
+    </style>
+    <style>
+        .video-js .vjs-current-time, .vjs-no-flex .vjs-current-time {
+            display: block !important;
+        }
+        .vjs-time-divider {
+            display: block !important;
+        }
+
+        .video-js .vjs-duration, .vjs-no-flex .vjs-duration {
+            display: block !important;
+        }
+        .video-js .vjs-remaining-time {
+            display: none;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css">
+    <!--https://www.bootcdn.cn/video.js/-->
+    <link href="https://cdn.bootcss.com/video.js/7.6.5/alt/video-js-cdn.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcss.com/video.js/6.6.2/video.js"></script>
+    <!--https://www.bootcdn.cn/videojs-contrib-hls/-->
+    <script src="https://cdn.bootcss.com/videojs-contrib-hls/5.15.0/videojs-contrib-hls.min.js"></script>
+    <script>
+        function t2d(ms) {
+                    try
+                    {
+                                return new Date(parseInt(ms)*1000).toISOString().slice(11, 11+8);
+                            }
+                    catch(error)
+                    {
+                                return "00:00:00"
+                            }
+                }
+
+        function d2t(data){
+                    var hh = data.split(":");
+                    return parseInt(hh[0])*3600+parseInt(hh[1])*60+parseInt(hh[2]) ;
+                }
+        function ChangeM3u8(){
+            var play = document.getElementById('video-url').value
+            var vt = d2t(document.getElementById('video-time').value)
+            var url = location.href
+            url = url.split('?')[0]+'?play='+encodeURIComponent(play)+'&time='+vt
+            location.href = url
+        }
+        function QueryString(qs){
+            var url = location.href
+            url = url.replace('?','?&').split('&')
+            var re = ''
+            for(var i=1;i < url.length;i++){
+                if(url[i].indexOf(qs+'=')==0){
+                    re = url[i].replace(qs+'=','')
+                    break
+                }
+            }
+            return decodeURIComponent(re)
+        }
+        function IsPC(){
+            var userAgentInfo = navigator.userAgent;
+            var Agents = ["Android", "iPhone",
+                        "SymbianOS", "Windows Phone",
+                        "iPad", "iPod"];
+            var flag = true;
+            for (var v = 0; v < Agents.length; v++) {
+                if (userAgentInfo.indexOf(Agents[v]) > 0) {
+                    flag = false;
+                    break;
+                }
+            }
+            return flag;
+        }
+    </script>
+
+</head> <body style="background-color:#16161A;" background="img/bg.png">
+<div style="background:#2A2A32;height:7%;padding-left:3%;display:flex;align-items:center;" >
+    <a id = "webhead" class = "navbar-brand logo" style="color:white;font-size:1.3em" href="">M3U8播放器</a>
+</div>
+<div id="videodiv" style="height:25%;width:auto;margin-top:13px;margin-left:10px;margin-right:10px;background:#16161A">
+    <video id="myVideo" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="auto"  width="" height="" data-setup='{}'>    
+        <source id="source" src="http://hls.cntv.lxdns.com/asp/hls/main/0303000a/3/default/978a64ddd3a1caa85ae70a23414e6540/main.m3u8"  type="application/x-mpegurl">
+    </video>
+</div>
+
+<div style="height:7%;width:auto;margin-left:5%;margin-right:5%;background:#16161A">
+<div class="input-group my-3">
+    <input id="video-url" required="" name="play" type="text" class="form-control nice" placeholder="输入 M3U8 URL 地址" value="http://hls.cntv.lxdns.com/asp/hls/main/0303000a/3/default/978a64ddd3a1caa85ae70a23414e6540/main.m3u8" aria-describedby="button-addon2" />
+    <div class="input-group-append">
+    <input id="video-time" required="" name="vtime" type="text" class="form-control nice" placeholder="输入时间" value="00:00:00" aria-describedby="button-addon2" />
+    </div>
+    <div class="input-group-append">
+        <button class="btn btn-dark js-play border-0" type="button" onclick="ChangeM3u8()">Play </button>
+    </div>
+</div>
+</div>
+<div id="footer"></div>
+<script type="text/javascript">
+    if(IsPC()){
+        document.getElementById('videodiv').style="margin:0 auto;height:88%;width:78%;margin-top:17px;"
+    }
+    var play = QueryString('play')
+    console.log(play)
+    var vt = QueryString('time')
+    if(play != ''){
+        document.getElementById('video-url').value = play
+        document.getElementById('video-time').value = t2d(vt)
+        document.getElementById('source').src = play
+    }
+    var width = document.getElementById('videodiv').offsetWidth
+    var height = document.getElementById('videodiv').offsetHeight
+    document.getElementById('myVideo').setAttribute('width',width)
+    document.getElementById('myVideo').setAttribute('height',height)
+    var total_h = document.body.clientHeight
+    var footer_h = document.getElementById('footer').offsetTop
+    document.getElementById('footer').style.marginTop =  (total_h-footer_h-60)+"px"
+    // videojs 简单使用  
+    var myVideo = videojs('myVideo',{
+        bigPlayButton : true, 
+        textTrackDisplay : true, 
+        posterImage: false,
+        errorDisplay : true,
+        controlBar: {volumePanel:{inline:false}},
+        playbackRates: [0.5,1,1.25,1.5,2],
+    },function onPlayerReady(){
+        this.on('error',function(){
+            myVideo.errorDisplay.close()
+            //alert('小主，地址解析错误≥﹏≤ \n    请检查链接是否正确')
+            alert('错误:'+this.error()['message'])
+        });
+        this.on('loadstart', function() { //客户端开始请求数据
+            //console.log("客户端开始请求数据")
+        });
+        this.on('loadedmetadata', function() {
+            console.log('loadedmetadata-视频源数据加载完成')
+            //设置上次播放时间lastLearnTime(秒)
+            this.play() // 视频播放
+            this.currentTime(vt);
+        });
+        this.on('progress', function() {//客户端正在请求数据
+            //console.log("客户端正在请求数据")
+        });
+        this.on('abort', function() {//客户端主动终止下载（不是因为错误引起）
+            //console.log("客户端主动终止下载")
+        });
+        this.on('play', function() {//开始播放
+            console.log("开始播放")
+        });
+        this.on('pause', function() {//暂停
+            //console.log("暂停")
+        });
+        this.on('seeking', function() { //寻找中
+            console.log("寻找中")
+        });
+        this.on('seeked', function() {//寻找完毕
+            console.log("寻找完毕")
+        });
+        var totalTime = 0
+        this.on('timeupdate', function() {//播放时间改变
+            var currentTime = Math.floor(this.currentTime());
+            if (currentTime > 0 && currentTime > totalTime && (currentTime % 5 == 0)) {
+                console.log("播放时间改变:"+currentTime);
+                document.getElementById('video-time').value=t2d(currentTime)
+            }
+            totalTime = currentTime;
+        });
+        this.on('ended', function() {//播放结束
+            console.log("播放结束")
+        });
+        this.on('ratechange', function() {//播放速率改变
+            console.log("播放速率改变")
+        });
+        this.on('durationchange', function() {//资源长度改变
+            console.log("资源长度改变")
+        });
+        this.on('volumechange', function() {//音量改变
+            console.log("音量改变")
+        });
+    })
+    myVideo.src({"src":play,"type":"application/x-mpegURL" })
+    myVideo.load()
+    myVideo.currentTime(vt)
+    myVideo.play() // 视频播放
+    myVideo.pause() // 视频暂停
+    var vol = 0.1;  //1代表100%音量，每次增减0.1
+    var time = 10; //单位秒，每次增减10秒
+    document.onkeyup = function (event) {//键盘事件
+        var e = event || window.event || arguments.callee.caller.arguments[0];
+        if (e && e.keyCode === 37) {
+            // 按 向左键
+            c_time = myVideo.currentTime()
+            if(c_time-time > 0){
+                myVideo.currentTime(c_time-time)
+            }else{
+                myVideo.currentTime(0)
+            }
+            return false;
+        }else if (e && e.keyCode === 39) {
+            // 按 向右键
+            c_time = myVideo.currentTime()
+            d_time = myVideo.duration();
+            if(c_time+time > d_time){
+                myVideo.currentTime(d_time)
+            }else{
+                myVideo.currentTime(c_time+time)
+            }
+            return false;
+        }else if (e && e.keyCode === 38) {
+            // 按 向上键
+            c_volume = myVideo.volume()
+            if(c_volume+vol > 1){
+                myVideo.volume(1)
+            }else{
+                myVideo.volume(c_volume+vol)
+            }
+            return false;
+        }else if (e && e.keyCode === 40) {
+            // 按 向下键
+            c_volume = myVideo.volume()
+            if(c_volume-vol < 0){
+                myVideo.volume(0)
+            }else{
+                myVideo.volume(c_volume-vol)
+            }
+            return false;
+        }else if (e && e.keyCode === 32) {
+            // 按 空格键
+            if (myVideo.paused()){
+                myVideo.play()
+            }else{
+                myVideo.pause()
+            }
+            return false;
+        }
+
+    }
+</script>
+</body>
+</html>
+
